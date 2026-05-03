@@ -49,15 +49,40 @@ const INITIAL_TASKS: Task[] = [
 ]
 
 export function KanbanBoard() {
-  const [tasks, setTasks] = React.useState<Task[]>(INITIAL_TASKS)
+  const [tasks, setTasks] = React.useState<Task[]>([])
   const [draggedTaskId, setDraggedTaskId] = React.useState<string | null>(null)
   const [activeDropZone, setActiveDropZone] = React.useState<Task['status'] | null>(null)
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800)
-    return () => clearTimeout(timer)
+    async function fetchTasks() {
+      try {
+        const res = await fetch('http://localhost:5000/api/tasks')
+        if (res.ok) {
+          const data = await res.json()
+          // Map MongoDB _id to frontend id
+          const mappedTasks = data.map((t: any) => ({
+            ...t,
+            id: t._id,
+            assignee: {
+              name: t.assignee?.firstName ? `${t.assignee.firstName} ${t.assignee.lastName}` : 'Unassigned',
+              avatar: t.assignee?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'
+            }
+          }))
+          setTasks(mappedTasks)
+        } else {
+          // Fallback to mock data if backend not running
+          setTasks(INITIAL_TASKS)
+        }
+      } catch (e) {
+        console.warn('Backend not running, using mock data.')
+        setTasks(INITIAL_TASKS)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchTasks()
   }, [])
 
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
@@ -99,9 +124,18 @@ export function KanbanBoard() {
     
     if (!draggedTaskId) return
 
-    setTasks(prev => prev.map(t => 
-      t.id === draggedTaskId ? { ...t, status } : t
-    ))
+    setTasks(prev => 
+      prev.map(task => 
+        task.id === draggedTaskId ? { ...task, status } : task
+      )
+    )
+
+    // Fire off async update to MongoDB
+    fetch(`http://localhost:5000/api/tasks/${draggedTaskId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    }).catch(e => console.warn('Failed to persist to database:', e))
   }
 
   const columns: { id: Task['status']; title: string }[] = [
