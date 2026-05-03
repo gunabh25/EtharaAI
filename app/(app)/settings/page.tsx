@@ -9,12 +9,13 @@ import { FloatingInput } from '@/components/ui/floating-input'
 import { useToast } from '@/components/ui/toast'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { cn } from '@/lib/utils'
+import { useTheme } from 'next-themes'
 
 export default function SettingsPage() {
   const { toast } = useToast()
   
   // Theme State
-  const [theme, setTheme] = React.useState<'light' | 'dark' | 'system'>('system')
+  const { theme, setTheme } = useTheme()
   
   // Settings State
   const [notifications, setNotifications] = React.useState(true)
@@ -27,15 +28,7 @@ export default function SettingsPage() {
   // Confirm State
   const [confirmOpen, setConfirmOpen] = React.useState(false)
 
-  React.useEffect(() => {
-    // Basic mock implementation of theme switcher for the UI
-    const root = document.documentElement
-    if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
-  }, [theme])
+
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault()
