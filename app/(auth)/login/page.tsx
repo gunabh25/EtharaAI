@@ -7,11 +7,12 @@ import { Loader2, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FloatingInput } from '@/components/ui/floating-input'
 import { PasswordInput } from '@/components/ui/password-input'
+import Cookies from 'js-cookie'
 
 export default function LoginPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = React.useState(false)
-  const [errors, setErrors] = React.useState<{ email?: string; password?: string }>({})
+  const [errors, setErrors] = React.useState<{ email?: string; password?: string; general?: string }>({})
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -30,8 +31,8 @@ export default function LoginPage() {
       newErrors.email = 'Please enter a valid email address'
       hasError = true
     }
-    if (!password || password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters'
+    if (!password) {
+      newErrors.password = 'Password is required'
       hasError = true
     }
 
@@ -41,21 +42,48 @@ export default function LoginPage() {
       return
     }
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Use local dev port or environment variable
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+      const res = await fetch(`${apiUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        // Store token in cookie for middleware
+        Cookies.set('auth_token', data.token, { expires: 30 }) // 30 days
+        Cookies.set('user_role', data.role, { expires: 30 })
+        
+        router.push('/dashboard')
+        router.refresh()
+      } else {
+        setErrors({ general: data.message || 'Invalid credentials' })
+      }
+    } catch (err) {
+      setErrors({ general: 'Failed to connect to the server. Please try again.' })
+    } finally {
       setIsLoading(false)
-      router.push('/dashboard')
-    }, 1500)
+    }
   }
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-white">Welcome back</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Enter your credentials to access your account.
         </p>
       </div>
+
+      {errors.general && (
+        <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium animate-in shake-1">
+          {errors.general}
+        </div>
+      )}
 
       <form onSubmit={onSubmit} className="space-y-5">
         <FloatingInput
@@ -87,12 +115,15 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <Button type="submit" className="w-full h-12 text-base mt-2" disabled={isLoading}>
+        <Button type="submit" className="w-full h-12 text-base mt-2 shadow-lg shadow-primary/20" disabled={isLoading}>
           {isLoading ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          ) : null}
-          Sign In
-          {!isLoading && <ArrowRight className="ml-2 h-5 w-5" />}
+          ) : (
+            <>
+              Sign In
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </>
+          )}
         </Button>
       </form>
 

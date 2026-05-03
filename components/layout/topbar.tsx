@@ -6,10 +6,19 @@ import { Bell, Search, Menu, LogOut, User, Settings } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import Cookies from 'js-cookie'
 
 export function Topbar() {
   const router = useRouter()
   const [profileOpen, setProfileOpen] = React.useState(false)
+
+  const handleLogout = () => {
+    Cookies.remove('auth_token')
+    Cookies.remove('user_role')
+    setProfileOpen(false)
+    router.push('/login')
+    router.refresh()
+  }
 
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background/80 px-4 backdrop-blur-md sm:gap-x-6 sm:px-6 lg:px-8">
@@ -77,7 +86,7 @@ export function Topbar() {
                     <Settings className="mr-2 h-4 w-4 text-muted-foreground" /> Settings
                   </button>
                   <div className="my-1 border-t border-border" />
-                  <button onClick={() => { setProfileOpen(false); router.push('/login') }} className="flex w-full items-center px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors">
+                  <button onClick={handleLogout} className="flex w-full items-center px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors">
                     <LogOut className="mr-2 h-4 w-4" /> Sign out
                   </button>
                 </div>
