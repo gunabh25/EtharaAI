@@ -1,97 +1,113 @@
-# EtharaAI — Full-Stack Team Task Manager
+# EtharaAI — Enterprise Team Management Platform
 
-EtharaAI is a modern, high-performance SaaS platform built to help teams manage projects, assign tasks, and track progress with a premium user experience. It features a real-time Kanban board, advanced dashboard analytics, and secure role-based access control.
+EtharaAI is a high-performance, full-stack SaaS platform designed for modern teams to manage complex projects, track real-time analytics, and streamline collaboration with a premium user experience.
 
-![EtharaAI Dashboard](https://images.unsplash.com/photo-1540350394557-8d14678e7f91?auto=format&fit=crop&q=80&w=2000)
+---
 
-## 🚀 Features
+## ✨ Features
 
-- **Real-time Dashboard**: Live stats for total tasks, completions, and overdue items pulled directly from MongoDB.
-- **Kanban Board**: Interactive drag-and-drop task management system with status persistence.
-- **Project Browser**: High-fidelity grid and list views for managing multiple team projects.
-- **Team Management**: Interactive interface for managing members and assigning roles.
-- **Secure Authentication**: JWT-based authentication with bcrypt password hashing and RBAC (Admin/Member).
-- **Premium UI/UX**: Built with Tailwind CSS, Framer Motion, and shadcn/ui. Includes dark mode, skeleton loaders, and spring-based animations.
-- **Mobile First**: Fully responsive design with a native-style bottom tab bar for mobile users.
+### 📊 Intelligent Dashboard
+* **Live Analytics**: Real-time tracking of task completion, overdue items, and team efficiency.
+* **Dynamic Charting**: Visualized task activity over the last 7 days pulled directly from MongoDB.
+* **Recent Activity Feed**: Transparent logging of team actions across the workspace.
+
+### 📋 Advanced Project Management
+* **Dual View Mode**: Switch seamlessly between high-fidelity Grid and List views.
+* **Project Persistence**: Full CRUD (Create, Read, Update, Delete) operations for projects with real-time database sync.
+* **Progress Tracking**: Interactive progress bars and status indicators for every initiative.
+
+### 🏗️ Kanban & Task Systems
+* **Interactive Kanban**: Drag-and-drop task management (Todo, In Progress, Completed).
+* **Task Modals**: Detailed task viewing and editing with assignee and priority management.
+
+### 🛡️ Security & Authentication
+* **JWT Sessions**: Secure, token-based session management stored in encrypted cookies.
+* **Bcrypt Hashing**: Industry-standard password encryption for all user accounts.
+* **RBAC (Role-Based Access Control)**: Permission-based access for Admins and Members.
+* **Protected Middleware**: Global Next.js middleware to enforce route protection and prevent unauthorized access.
+
+---
 
 ## 🛠 Tech Stack
 
-### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **State/UI**: React Hooks, shadcn/ui, Lucide Icons
+| Layer | Technology |
+| :--- | :--- |
+| **Frontend** | Next.js 14 (App Router), React, TypeScript |
+| **Styling** | Tailwind CSS, shadcn/ui |
+| **Animations** | Framer Motion (Spring-based) |
+| **Backend** | Node.js, Express |
+| **Database** | MongoDB (Mongoose ODM) |
+| **Authentication** | JSON Web Tokens (JWT), Bcrypt.js, js-cookie |
 
-### Backend
-- **Server**: Node.js, Express
-- **Database**: MongoDB (Mongoose ODM)
-- **Security**: JWT (JSON Web Tokens), Bcrypt.js
-- **Environment**: Dotenv
+---
 
-## 🏁 Getting Started
+## 🏁 Local Development Setup
 
-### Prerequisites
-- Node.js 18+
-- MongoDB (Local instance or Atlas URI)
+### 1. Prerequisites
+* Node.js 18.0 or higher
+* MongoDB installed and running locally (`mongodb://127.0.0.1:27017`)
 
-### Installation
+### 2. Backend Configuration
+Navigate to the `backend` folder and create a `.env` file:
+```env
+PORT=5005
+MONGO_URI=mongodb://127.0.0.1:27017/ethara_ai
+JWT_SECRET=your_secure_random_key_here
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/gunabh25/EtharaAI.git
-   cd EtharaAI
-   ```
+### 3. Installation & Seeding
+```bash
+# Install root dependencies
+npm install
 
-2. **Setup Frontend**
-   ```bash
-   npm install
-   ```
+# Install and seed backend
+cd backend
+npm install
+node seed.js
+```
 
-3. **Setup Backend**
-   ```bash
-   cd backend
-   npm install
-   ```
+### 4. Running the Application
+```bash
+# Start backend (Port 5005)
+node server.js
 
-4. **Environment Variables**
-   Create a `.env` file in the `backend` directory:
-   ```env
-   PORT=5001
-   MONGO_URI=mongodb://localhost:27017/ethara_ai
-   JWT_SECRET=your_super_secret_key
-   ```
+# Start frontend (New terminal, root directory)
+npm run dev
+```
+Visit: `http://localhost:3000`
 
-### Running the App
+---
 
-1. **Start MongoDB**
-   ```bash
-   brew services start mongodb-community@7.0
-   ```
+## 🚀 Production Deployment (Railway)
 
-2. **Seed the Database** (Optional but recommended for demo)
-   ```bash
-   cd backend
-   node seed.js
-   ```
+EtharaAI is optimized for deployment on Railway.
 
-3. **Start Backend Server**
-   ```bash
-   cd backend
-   node server.js
-   ```
+### 1. Environment Variables (Railway Dashboard)
+Add these variables to your **EtharaAI Service**:
+* `MONGO_URI`: `${{MongoDB.MONGO_URL}}` (Connects to your Railway MongoDB service)
+* `JWT_SECRET`: Use the same secret key from your local `.env`.
+* `NEXT_PUBLIC_API_URL`: `https://your-app-url.up.railway.app`
 
-4. **Start Frontend Dev Server**
-   ```bash
-   # From the root directory
-   npm run dev
-   ```
+### 2. Seeding the Production Database
+To populate your live site with initial data, run this command from your local terminal (replacing the URL with your **Public Connection String** from Railway):
+```bash
+cd backend
+MONGO_URI="mongodb://mongo:password@your-railway-proxy.rlwy.net:12345" node seed.js
+```
 
-Visit `http://localhost:3000` to see the app!
+### 3. Smart API Routing
+The application uses **Smart Routing** logic to automatically detect the environment:
+* **Local**: Connects to `http://localhost:5005`
+* **Production**: Connects to the Railway deployment URL automatically.
 
-## 🛡 Security & Roles
-The app implements Role-Based Access Control (RBAC):
-- **Admins**: Full access to create/delete projects and manage team roles.
-- **Members**: Can create tasks, update status, and participate in projects.
+---
+
+## 🎨 Design System
+* **Aesthetics**: Sleek dark mode with glassmorphism effects and soft shadows.
+* **Interactions**: Subtle hover micro-animations and smooth transitions using Framer Motion.
+* **Typography**: Modern, clean sans-serif stack (Inter/system-font).
+
+---
 
 ## 📄 License
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
