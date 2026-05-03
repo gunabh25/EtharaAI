@@ -13,31 +13,76 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { useToast } from '@/components/ui/toast'
 
-export function CreateProjectDialog({ children }: { children?: React.ReactNode }) {
+interface CreateProjectDialogProps {
+  children?: React.ReactNode
+  onProjectCreated?: () => void
+}
+
+export function CreateProjectDialog({ children, onProjectCreated }: CreateProjectDialogProps) {
   const [open, setOpen] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(false)
+  const { toast } = useToast()
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
-    setTimeout(() => {
+
+    const formData = new FormData(e.currentTarget)
+    const title = formData.get('title')
+    const description = formData.get('description')
+    const dueDate = formData.get('dueDate')
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+      const res = await fetch(`${apiUrl}/api/projects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          dueDate: dueDate ? new Date(dueDate as string) : undefined,
+          status: 'active',
+          progress: 0
+        })
+      })
+
+      if (res.ok) {
+        toast({
+          title: "Project created",
+          description: "Your new project has been successfully added.",
+          type: "success"
+        })
+        setOpen(false)
+        onProjectCreated?.()
+      } else {
+        throw new Error("Failed to create project")
+      }
+    } catch (err) {
+      toast({
+        title: "Creation failed",
+        description: "There was an error creating your project. Please try again.",
+        type: "error"
+      })
+    } finally {
       setIsLoading(false)
-      setOpen(false)
-    }, 1000)
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children || (
-          <Button>
+          <Button className="shadow-lg shadow-primary/20">
             <Plus className="mr-2 h-4 w-4" />
             New Project
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] rounded-3xl border-none shadow-2xl">
         <DialogHeader>
           <DialogTitle>Create new project</DialogTitle>
           <DialogDescription>
@@ -47,6 +92,7 @@ export function CreateProjectDialog({ children }: { children?: React.ReactNode }
         <form onSubmit={onSubmit} className="space-y-5 py-4">
           <FloatingInput
             id="title"
+            name="title"
             label="Project Title"
             required
             autoFocus
@@ -54,32 +100,40 @@ export function CreateProjectDialog({ children }: { children?: React.ReactNode }
           />
           <FloatingInput
             id="description"
+            name="description"
             label="Description (Optional)"
             disabled={isLoading}
           />
           <div className="grid grid-cols-2 gap-4">
             <FloatingInput
               id="dueDate"
+              name="dueDate"
               label="Due Date"
               type="date"
               className="[&::-webkit-calendar-picker-indicator]:opacity-50"
               disabled={isLoading}
             />
-            {/* Simple input for priority placeholder */}
             <FloatingInput
               id="priority"
+              name="priority"
               label="Priority"
               defaultValue="High"
               disabled={isLoading}
             />
           </div>
-          <DialogFooter className="pt-4">
+          <DialogFooter className="pt-4 gap-2 sm:gap-0">
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={isLoading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? 'Creating...' : 'Create Project'}
+            <Button type="submit" disabled={isLoading} className="shadow-lg shadow-primary/20">
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Project'
+              )}
             </Button>
           </DialogFooter>
         </form>

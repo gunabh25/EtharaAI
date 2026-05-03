@@ -27,4 +27,23 @@ router.post('/', async (req, res) => {
   }
 });
 
+// @route   PUT /api/projects/:id
+// @desc    Update a project
+router.put('/:id', async (req, res) => {
+  try {
+    let project = await Project.findById(req.params.id);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    project = await Project.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true }
+    );
+    res.json(project);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;
