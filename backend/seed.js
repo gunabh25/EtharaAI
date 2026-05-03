@@ -4,7 +4,9 @@ const Task = require('./models/Task');
 const User = require('./models/User');
 const Project = require('./models/Project');
 
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ethara_ai')
+const dbUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ethara_ai';
+
+mongoose.connect(dbUri)
   .then(async () => {
     console.log('Connected to DB. Seeding...');
     await Task.deleteMany({});
