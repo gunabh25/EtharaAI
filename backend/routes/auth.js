@@ -1,32 +1,43 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'secret123', {
+    expiresIn: '30d'
+  });
+};
 
 // @route   POST /api/auth/register
 // @desc    Register a user
 router.post('/register', async (req, res) => {
   try {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, role } = req.body;
     
-    // Check if user exists
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create new user (NOTE: In production, hash the password with bcrypt!)
     user = new User({
       firstName,
       lastName,
       email,
-      password,
+      password, // Hashed by pre-save hook in model
+      role: role || 'Member',
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstName}&backgroundColor=transparent`
     });
 
     await user.save();
     
-    // In production, return a JWT token here
-    res.status(201).json({ message: 'User registered successfully', user: { id: user._id, email: user.email } });
+    res.status(201).json({
+      _id: user._id,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user._id)
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
@@ -39,18 +50,18 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    let user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid Credentials' });
+    const user = await User.findOne({ email });
+    if (user && (await user.comparePassword(password))) {
+      res.json({
+        _id: user._id,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        role: user.role,
+        token: generateToken(user._id)
+      });
+    } else {
+      res.status(401).json({ message: 'Invalid email or password' });
     }
-
-    // NOTE: In production, compare hashed password using bcrypt.compare
-    if (password !== user.password) {
-      return res.status(400).json({ message: 'Invalid Credentials' });
-    }
-
-    // In production, return a JWT token here
-    res.json({ message: 'Login successful', user: { id: user._id, email: user.email, name: `${user.firstName} ${user.lastName}` } });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
