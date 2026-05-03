@@ -31,7 +31,7 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        "relative hidden flex-col border-r border-border bg-sidebar text-sidebar-foreground transition-all duration-300 md:flex z-20",
+        "relative hidden flex-col border-r border-border bg-sidebar text-sidebar-foreground transition-all duration-300 md:flex z-20 sticky top-0 h-screen",
         isCollapsed ? "sidebar-collapsed" : "sidebar-expanded"
       )}
     >
