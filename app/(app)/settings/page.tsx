@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { FloatingInput } from '@/components/ui/floating-input'
 import { useToast } from '@/components/ui/toast'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { cn } from '@/lib/utils'
 
 export default function SettingsPage() {
   const { toast } = useToast()
