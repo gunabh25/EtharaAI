@@ -46,4 +46,28 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// @route   POST /api/tasks/:id/comments
+// @desc    Add a comment to a task
+router.post('/:id/comments', async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+
+    const newComment = {
+      content: req.body.content,
+      userName: req.body.userName || 'Alex Morgan', // Fallback for demo
+      userAvatar: req.body.userAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=transparent',
+      createdAt: new Date()
+    };
+
+    task.comments.unshift(newComment);
+    await task.save();
+
+    res.json(task.comments);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;
