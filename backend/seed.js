@@ -5,6 +5,8 @@ const User = require('./models/User');
 const Project = require('./models/Project');
 
 const dbUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ethara_ai';
+console.log('--- SEEDING DATABASE ---');
+console.log('Target URI:', dbUri.replace(/:([^:@]+)@/, ':****@')); // Hide password in logs
 
 mongoose.connect(dbUri)
   .then(async () => {
