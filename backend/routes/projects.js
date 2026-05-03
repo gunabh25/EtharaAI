@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
+const { protect } = require('../middleware/auth');
 
 // @route   GET /api/projects
 // @desc    Get all projects
@@ -29,7 +30,7 @@ router.post('/', async (req, res) => {
 
 // @route   PUT /api/projects/:id
 // @desc    Update a project
-router.put('/:id', async (req, res) => {
+router.put('/:id', protect, async (req, res) => {
   try {
     let project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });

@@ -38,7 +38,7 @@ export default function SettingsPage() {
     async function fetchProfile() {
       try {
         const token = Cookies.get('auth_token')
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+        const apiUrl = 'http://localhost:5005'
         const res = await fetch(`${apiUrl}/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`

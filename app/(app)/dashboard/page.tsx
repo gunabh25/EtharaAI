@@ -34,7 +34,7 @@ export default function DashboardPage() {
     setIsLoading(true)
     setError(null)
     try {
-      const res = await fetch('http://localhost:5001/api/dashboard')
+      const res = await fetch('http://localhost:5005/api/dashboard')
       if (res.ok) {
         const result = await res.json()
         setData(result)

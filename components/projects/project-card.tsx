@@ -55,7 +55,8 @@ export function ProjectCard({ project, view, onUpdate }: ProjectCardProps) {
     setIsSaving(true)
     try {
       const token = Cookies.get('auth_token')
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+      const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+      const apiUrl = isLocal ? 'http://localhost:5005' : 'https://etharaai-production-6f63.up.railway.app'
       const res = await fetch(`${apiUrl}/api/projects/${project.id || project._id}`, {
         method: 'PUT',
         headers: { 
@@ -64,6 +65,9 @@ export function ProjectCard({ project, view, onUpdate }: ProjectCardProps) {
         },
         body: JSON.stringify(editForm)
       })
+
+      const data = await res.json()
+
       if (res.ok) {
         setIsEditDialogOpen(false)
         toast({
@@ -73,12 +77,12 @@ export function ProjectCard({ project, view, onUpdate }: ProjectCardProps) {
         })
         onUpdate?.()
       } else {
-        throw new Error("Failed to update")
+        throw new Error(data.message || `Error ${res.status}: Failed to update`)
       }
-    } catch (e) {
+    } catch (e: any) {
       toast({
         title: "Update failed",
-        description: "Could not save changes. Please try again.",
+        description: e.message || "Could not save changes. Please try again.",
         type: "error"
       })
       console.error("Failed to update project", e)

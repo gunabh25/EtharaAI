@@ -16,7 +16,8 @@ export default function ProjectsPage() {
 
   const fetchProjects = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+      const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+      const apiUrl = isLocal ? 'http://localhost:5005' : 'https://etharaai-production-6f63.up.railway.app'
       const res = await fetch(`${apiUrl}/api/projects`)
       if (res.ok) {
         const data = await res.json()

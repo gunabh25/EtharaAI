@@ -6,7 +6,11 @@ const cors = require('cors');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*', // In production, replace with your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Routes
@@ -25,7 +29,18 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'EtharaAI Backend is running!' });
 });
 
-const PORT = process.env.PORT || 5001;
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({ message: `Route ${req.originalUrl} not found` });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Internal Server Error', error: err.message });
+});
+
+const PORT = process.env.PORT || 5005;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

@@ -43,8 +43,7 @@ export default function LoginPage() {
     }
 
     try {
-      // Use local dev port or environment variable
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+      const apiUrl = 'http://localhost:5005'
       const res = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
