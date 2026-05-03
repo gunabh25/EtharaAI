@@ -58,7 +58,7 @@ export function KanbanBoard() {
   React.useEffect(() => {
     async function fetchTasks() {
       try {
-        const res = await fetch('http://localhost:5000/api/tasks')
+        const res = await fetch('http://localhost:5001/api/tasks')
         if (res.ok) {
           const data = await res.json()
           // Map MongoDB _id to frontend id
@@ -131,7 +131,7 @@ export function KanbanBoard() {
     )
 
     // Fire off async update to MongoDB
-    fetch(`http://localhost:5000/api/tasks/${draggedTaskId}`, {
+    fetch(`http://localhost:5001/api/tasks/${draggedTaskId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
