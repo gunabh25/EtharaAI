@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { User, Bell, Shield, Moon, Monitor, Sun, Save, DownloadCloud } from 'lucide-react'
+import { User, Bell, Shield, Moon, Monitor, Sun, Save, DownloadCloud, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -10,37 +10,98 @@ import { useToast } from '@/components/ui/toast'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { cn } from '@/lib/utils'
 import { useTheme } from 'next-themes'
+import Cookies from 'js-cookie'
 
 export default function SettingsPage() {
   const { toast } = useToast()
-  
-  // Theme State
   const { theme, setTheme } = useTheme()
   
-  // Settings State
+  // User Profile State
+  const [user, setUser] = React.useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    jobTitle: '',
+    avatar: ''
+  })
+  
+  // UI States
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [isSaving, setIsSaving] = React.useState(false)
+  const [confirmOpen, setConfirmOpen] = React.useState(false)
   const [notifications, setNotifications] = React.useState(true)
   const [marketingEmails, setMarketingEmails] = React.useState(false)
   const [twoFactorAuth, setTwoFactorAuth] = React.useState(false)
-  
-  // Form State
-  const [isSaving, setIsSaving] = React.useState(false)
 
-  // Confirm State
-  const [confirmOpen, setConfirmOpen] = React.useState(false)
+  // Fetch user data
+  React.useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const token = Cookies.get('auth_token')
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+        const res = await fetch(`${apiUrl}/api/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setUser({
+            firstName: data.firstName || '',
+            lastName: data.lastName || '',
+            email: data.email || '',
+            jobTitle: data.jobTitle || '',
+            avatar: data.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.firstName}`
+          })
+        }
+      } catch (e) {
+        console.error("Failed to fetch profile", e)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchProfile()
+  }, [])
 
-
-
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSaving(true)
-    setTimeout(() => {
-      setIsSaving(false)
-      toast({
-        title: "Profile updated",
-        description: "Your changes have been saved successfully.",
-        type: "success"
+    
+    try {
+      const token = Cookies.get('auth_token')
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+      const res = await fetch(`${apiUrl}/api/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(user)
       })
-    }, 1000)
+
+      if (res.ok) {
+        const updatedUser = await res.json()
+        // Update cookies if token is refreshed
+        if (updatedUser.token) {
+          Cookies.set('auth_token', updatedUser.token)
+        }
+        toast({
+          title: "Profile updated",
+          description: "Your changes have been saved to the database.",
+          type: "success"
+        })
+      } else {
+        throw new Error("Failed to update")
+      }
+    } catch (e) {
+      toast({
+        title: "Update failed",
+        description: "Could not save changes to the server.",
+        type: "error"
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleDeleteAccount = () => {
@@ -56,6 +117,14 @@ export default function SettingsPage() {
     })
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto max-w-5xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
       <div>
@@ -64,8 +133,6 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        
-        {/* Settings Navigation */}
         <div className="col-span-1 space-y-1">
           <Button variant="secondary" className="w-full justify-start shadow-none">
             <User className="mr-2 h-4 w-4" /> Profile
@@ -78,11 +145,8 @@ export default function SettingsPage() {
           </Button>
         </div>
 
-        {/* Settings Content */}
         <div className="col-span-1 md:col-span-3 space-y-8">
-          
-          {/* Profile Section */}
-          <Card>
+          <Card className="border-none shadow-soft-lg bg-card/50 backdrop-blur-sm">
             <CardHeader>
               <CardTitle>Profile Details</CardTitle>
               <CardDescription>Update your personal information and avatar.</CardDescription>
@@ -92,9 +156,9 @@ export default function SettingsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center gap-6">
                   <div className="relative group cursor-pointer shrink-0">
                     <img 
-                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=transparent" 
+                      src={user.avatar} 
                       alt="Avatar" 
-                      className="h-20 w-20 rounded-full bg-secondary border-2 border-border transition-transform group-hover:scale-105"
+                      className="h-20 w-20 rounded-full bg-secondary border-2 border-border transition-transform group-hover:scale-105 object-cover"
                     />
                     <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                       <span className="text-xs font-medium text-white">Edit</span>
@@ -113,17 +177,46 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <FloatingInput id="firstName" label="First Name" defaultValue="Alex" required />
-                  <FloatingInput id="lastName" label="Last Name" defaultValue="Morgan" required />
+                  <FloatingInput 
+                    id="firstName" 
+                    label="First Name" 
+                    value={user.firstName} 
+                    onChange={e => setUser({...user, firstName: e.target.value})}
+                    required 
+                  />
+                  <FloatingInput 
+                    id="lastName" 
+                    label="Last Name" 
+                    value={user.lastName} 
+                    onChange={e => setUser({...user, lastName: e.target.value})}
+                    required 
+                  />
                 </div>
                 
-                <FloatingInput id="email" label="Email Address" type="email" defaultValue="alex@ethara.ai" required />
+                <FloatingInput 
+                  id="email" 
+                  label="Email Address" 
+                  type="email" 
+                  value={user.email} 
+                  onChange={e => setUser({...user, email: e.target.value})}
+                  required 
+                />
                 
-                <FloatingInput id="jobTitle" label="Job Title" defaultValue="Lead Engineer" />
+                <FloatingInput 
+                  id="jobTitle" 
+                  label="Job Title" 
+                  value={user.jobTitle} 
+                  onChange={e => setUser({...user, jobTitle: e.target.value})}
+                />
 
                 <div className="flex justify-end pt-4">
-                  <Button type="submit" disabled={isSaving}>
-                    {isSaving ? "Saving..." : (
+                  <Button type="submit" disabled={isSaving} className="shadow-lg shadow-primary/20 h-11 px-8">
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving Changes...
+                      </>
+                    ) : (
                       <>
                         <Save className="mr-2 h-4 w-4" /> Save Changes
                       </>
@@ -134,14 +227,12 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Preferences Section */}
-          <Card>
+          <Card className="border-none shadow-soft-lg bg-card/50 backdrop-blur-sm">
             <CardHeader>
               <CardTitle>Preferences</CardTitle>
               <CardDescription>Customize your app experience and interface.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
-              
               <div className="space-y-4">
                 <label className="text-sm font-medium">Appearance</label>
                 <div className="grid grid-cols-3 gap-3">
@@ -177,7 +268,6 @@ export default function SettingsPage() {
                   </div>
                   <Switch checked={notifications} onCheckedChange={setNotifications} />
                 </div>
-
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <label className="text-sm font-medium">Marketing Emails</label>
@@ -185,7 +275,6 @@ export default function SettingsPage() {
                   </div>
                   <Switch checked={marketingEmails} onCheckedChange={setMarketingEmails} />
                 </div>
-
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <label className="text-sm font-medium">Two-Factor Authentication (2FA)</label>
@@ -197,30 +286,10 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Export Data */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Data & Privacy</CardTitle>
-              <CardDescription>Manage your personal data.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Export Workspace Data</label>
-                  <p className="text-xs text-muted-foreground">Download a copy of all data associated with your account.</p>
-                </div>
-                <Button variant="outline">
-                  <DownloadCloud className="mr-2 h-4 w-4" /> Export
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Danger Zone */}
-          <Card className="border-destructive/30 bg-destructive/5 shadow-none">
+          <Card className="border-none shadow-soft-lg bg-card/50 backdrop-blur-sm border-destructive/10">
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>
-              <CardDescription className="text-destructive/80">Permanently delete your account and all associated data.</CardDescription>
+              <CardDescription>Permanently delete your account and all associated data.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="destructive" onClick={() => setConfirmOpen(true)}>
@@ -228,7 +297,6 @@ export default function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
-
         </div>
       </div>
 
