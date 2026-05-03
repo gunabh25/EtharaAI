@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Loader2, ArrowRight } from 'lucide-react'
+import { Loader2, ArrowRight, UserCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FloatingInput } from '@/components/ui/floating-input'
 import { PasswordInput } from '@/components/ui/password-input'
@@ -11,6 +11,7 @@ import Cookies from 'js-cookie'
 
 export default function LoginPage() {
   const router = useRouter()
+  const formRef = React.useRef<HTMLFormElement>(null)
   const [isLoading, setIsLoading] = React.useState(false)
   const [errors, setErrors] = React.useState<{ email?: string; password?: string; general?: string }>({})
 
@@ -70,6 +71,18 @@ export default function LoginPage() {
     }
   }
 
+  const useDemo = () => {
+    if (formRef.current) {
+      const emailInput = formRef.current.querySelector('input[name="email"]') as HTMLInputElement
+      const passwordInput = formRef.current.querySelector('input[name="password"]') as HTMLInputElement
+      if (emailInput && passwordInput) {
+        emailInput.value = 'sarah@ethara.ai'
+        passwordInput.value = 'password123'
+        // Trigger a fake submit or just let user click
+      }
+    }
+  }
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8">
@@ -85,7 +98,7 @@ export default function LoginPage() {
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-5">
+      <form ref={formRef} onSubmit={onSubmit} className="space-y-5">
         <FloatingInput
           id="email"
           name="email"
@@ -126,6 +139,32 @@ export default function LoginPage() {
           )}
         </Button>
       </form>
+
+      {/* Demo Credentials Box */}
+      <div className="mt-8 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+            <UserCheck className="h-3 w-3" />
+            Demo Credentials
+          </div>
+          <button 
+            onClick={useDemo}
+            className="text-[10px] bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 rounded-full transition-colors font-bold uppercase"
+          >
+            Auto-Fill
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold">Email</p>
+            <p className="text-sm text-white/90 font-mono">sarah@ethara.ai</p>
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold">Password</p>
+            <p className="text-sm text-white/90 font-mono">password123</p>
+          </div>
+        </div>
+      </div>
 
       <div className="mt-8 flex items-center justify-center space-x-2 text-sm text-muted-foreground">
         <span>Don't have an account?</span>

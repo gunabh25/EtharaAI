@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:backend": "node backend/server.js",
     "lint": "next lint"
   },
   "dependencies": {
@@ -26,7 +27,13 @@
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^3.3.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.1"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
