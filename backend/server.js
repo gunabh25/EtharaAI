@@ -20,7 +20,8 @@ app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ethara_ai')
+const dbUri = process.env.MONGO_URI || process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/ethara_ai';
+mongoose.connect(dbUri)
   .then(() => console.log('MongoDB successfully connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
