@@ -34,7 +34,9 @@ export default function DashboardPage() {
     setIsLoading(true)
     setError(null)
     try {
-      const res = await fetch('http://localhost:5005/api/dashboard')
+      const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+      const apiUrl = isLocal ? 'http://localhost:5005' : 'https://etharaai-production-6f63.up.railway.app'
+      const res = await fetch(`${apiUrl}/api/dashboard`)
       if (res.ok) {
         const result = await res.json()
         setData(result)

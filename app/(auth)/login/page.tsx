@@ -43,7 +43,8 @@ export default function LoginPage() {
     }
 
     try {
-      const apiUrl = 'http://localhost:5005'
+      const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+      const apiUrl = isLocal ? 'http://localhost:5005' : 'https://etharaai-production-6f63.up.railway.app'
       const res = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
