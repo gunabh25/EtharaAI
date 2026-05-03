@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { cn, formatDate } from '@/lib/utils'
+import Cookies from 'js-cookie'
+import { useToast } from '@/components/ui/toast'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +40,7 @@ export interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, view, onUpdate }: ProjectCardProps) {
+  const { toast } = useToast()
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
   const [isSaving, setIsSaving] = React.useState(false)
   const [editForm, setEditForm] = React.useState({
@@ -51,17 +54,33 @@ export function ProjectCard({ project, view, onUpdate }: ProjectCardProps) {
   const handleUpdate = async () => {
     setIsSaving(true)
     try {
+      const token = Cookies.get('auth_token')
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
       const res = await fetch(`${apiUrl}/api/projects/${project.id || project._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(editForm)
       })
       if (res.ok) {
         setIsEditDialogOpen(false)
+        toast({
+          title: "Project updated",
+          description: "Your changes have been saved successfully.",
+          type: "success"
+        })
         onUpdate?.()
+      } else {
+        throw new Error("Failed to update")
       }
     } catch (e) {
+      toast({
+        title: "Update failed",
+        description: "Could not save changes. Please try again.",
+        type: "error"
+      })
       console.error("Failed to update project", e)
     } finally {
       setIsSaving(false)
