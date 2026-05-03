@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Calendar, ArrowUp, ArrowRight, ArrowDown } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { cn, formatDate } from '@/lib/utils'
-import type { Task } from './kanban-board'
+import type { Task } from './types'
 
 interface TaskCardProps {
   task: Task

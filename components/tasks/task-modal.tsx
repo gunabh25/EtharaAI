@@ -3,7 +3,7 @@ import { Calendar, MessageSquare, Clock, ArrowUp, ArrowRight, ArrowDown, Papercl
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { cn, formatDate } from '@/lib/utils'
-import type { Task } from './kanban-board'
+import type { Task } from './types'
 
 interface TaskModalProps {
   task: Task | null

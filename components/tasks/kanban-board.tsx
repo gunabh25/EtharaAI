@@ -7,18 +7,7 @@ import { cn } from '@/lib/utils'
 import { TaskCard } from './task-card'
 import { TaskModal } from './task-modal'
 
-export type Task = {
-  id: string
-  title: string
-  description: string
-  status: 'todo' | 'in-progress' | 'done'
-  priority: 'low' | 'medium' | 'high'
-  dueDate: string
-  assignee: {
-    name: string
-    avatar: string
-  }
-}
+import type { Task } from './types'
 
 const INITIAL_TASKS: Task[] = [
   {
