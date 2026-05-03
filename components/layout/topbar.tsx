@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Bell, Search, Menu } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export function Topbar() {
   return (
@@ -29,7 +30,8 @@ export function Topbar() {
             name="search"
           />
         </form>
-        <div className="flex items-center gap-x-4 lg:gap-x-6">
+        <div className="flex items-center gap-x-2 lg:gap-x-4">
+          <ThemeToggle />
           <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
             <span className="sr-only">View notifications</span>

@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Grid, List, Search, Filter, FolderPlus } from 'lucide-react'
+import { Grid, List, Search, Filter, FolderPlus, Compass } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ProjectCard } from '@/components/projects/project-card'
@@ -66,6 +66,12 @@ export default function ProjectsPage() {
   const [view, setView] = React.useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = React.useState('')
   const [projects] = React.useState(MOCK_PROJECTS)
+  const [isLoading, setIsLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800)
+    return () => clearTimeout(timer)
+  }, [])
 
   const filteredProjects = projects.filter(p => 
     p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -73,12 +79,12 @@ export default function ProjectsPage() {
   )
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="mx-auto max-w-7xl space-y-6">
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
-          <p className="text-muted-foreground">Manage and track your team's ongoing projects.</p>
+          <p className="text-muted-foreground mt-1">Manage and track your team's ongoing projects.</p>
         </div>
         <CreateProjectDialog />
       </div>
@@ -91,22 +97,22 @@ export default function ProjectsPage() {
             <Input 
               type="search" 
               placeholder="Search projects..." 
-              className="pl-9 h-9 w-full bg-background" 
+              className="pl-9 h-10 w-full bg-background transition-shadow focus-visible:ring-primary/20" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button variant="outline" size="icon" className="shrink-0 h-9 w-9">
+          <Button variant="outline" size="icon" className="shrink-0 h-10 w-10">
             <Filter className="h-4 w-4 text-muted-foreground" />
           </Button>
         </div>
 
-        <div className="flex items-center rounded-lg border bg-background p-1 w-full sm:w-auto">
+        <div className="flex items-center rounded-lg border bg-background p-1 w-full sm:w-auto shadow-sm">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => setView('grid')}
-            className={cn("h-7 px-3", view === 'grid' && "bg-muted shadow-sm")}
+            className={cn("h-8 px-3", view === 'grid' && "bg-muted shadow-sm font-medium")}
           >
             <Grid className="mr-2 h-4 w-4" />
             Grid
@@ -115,7 +121,7 @@ export default function ProjectsPage() {
             variant="ghost" 
             size="sm" 
             onClick={() => setView('list')}
-            className={cn("h-7 px-3", view === 'list' && "bg-muted shadow-sm")}
+            className={cn("h-8 px-3", view === 'list' && "bg-muted shadow-sm font-medium")}
           >
             <List className="mr-2 h-4 w-4" />
             List
@@ -124,22 +130,53 @@ export default function ProjectsPage() {
       </div>
 
       {/* Projects Content */}
-      {filteredProjects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed p-12 text-center animate-in fade-in zoom-in-95 duration-300">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
-            <FolderPlus className="h-8 w-8" />
+      {isLoading ? (
+        <div className={cn(
+          "grid gap-4 mt-6",
+          view === 'grid' ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "grid-cols-1"
+        )}>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className={cn(
+              "rounded-2xl border border-border bg-card p-5 animate-pulse",
+              view === 'grid' ? "h-48 flex flex-col justify-between" : "h-24 flex items-center"
+            )}>
+              <div className="space-y-3 w-full">
+                <div className="h-4 w-1/2 bg-muted rounded-md" />
+                <div className="h-3 w-full bg-muted rounded-md" />
+                {view === 'grid' && <div className="h-3 w-3/4 bg-muted rounded-md" />}
+              </div>
+              <div className={cn("flex justify-between w-full", view === 'grid' ? "mt-4" : "ml-4 max-w-[200px]")}>
+                <div className="flex -space-x-2">
+                  <div className="h-8 w-8 rounded-full bg-muted border-2 border-card" />
+                  <div className="h-8 w-8 rounded-full bg-muted border-2 border-card" />
+                </div>
+                <div className="h-4 w-1/4 bg-muted rounded-md self-end" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredProjects.length === 0 ? (
+        <div className="relative overflow-hidden flex flex-col items-center justify-center rounded-2xl border border-dashed border-primary/20 bg-primary/5 p-16 text-center mt-6 animate-in fade-in zoom-in-95 duration-300">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-50" />
+          
+          <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-inner mb-6 backdrop-blur-xl border border-white/10">
+            <Compass className="h-10 w-10 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold">No projects found</h3>
-          <p className="text-muted-foreground mt-2 mb-6 max-w-sm">
+          
+          <h3 className="relative z-10 text-xl font-bold tracking-tight">No projects found</h3>
+          <p className="relative z-10 text-muted-foreground mt-2 mb-8 max-w-md">
             {searchQuery 
-              ? `We couldn't find any projects matching "${searchQuery}". Try adjusting your search.`
-              : "Get started by creating your first project to organize tasks with your team."}
+              ? `We couldn't find any projects matching "${searchQuery}". Try adjusting your search filters.`
+              : "Get started by creating your first project. Organize your tasks, invite your team, and track your progress in one place."}
           </p>
-          {!searchQuery && <CreateProjectDialog />}
+          
+          <div className="relative z-10">
+            {!searchQuery && <CreateProjectDialog />}
+          </div>
         </div>
       ) : (
         <div className={cn(
-          "grid gap-4",
+          "grid gap-4 mt-6",
           view === 'grid' ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "grid-cols-1"
         )}>
           {filteredProjects.map((project, idx) => (

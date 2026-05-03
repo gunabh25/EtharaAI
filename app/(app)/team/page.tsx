@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Search, Filter, Mail, MoreHorizontal, Shield, User as UserIcon } from 'lucide-react'
+import { Search, Filter, Mail, MoreHorizontal, Shield, User as UserIcon, Users as UsersIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AddMemberDialog } from '@/components/team/add-member-dialog'
@@ -32,6 +32,12 @@ const RoleBadge = ({ role }: { role: string }) => {
 export default function TeamPage() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [team] = React.useState(MOCK_TEAM)
+  const [isLoading, setIsLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800)
+    return () => clearTimeout(timer)
+  }, [])
 
   const filteredTeam = team.filter(member => 
     member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -40,12 +46,12 @@ export default function TeamPage() {
   )
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="mx-auto max-w-7xl space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Team Settings</h1>
-          <p className="text-muted-foreground">Manage your team members and their account permissions here.</p>
+          <p className="text-muted-foreground mt-1">Manage your team members and their account permissions here.</p>
         </div>
         <AddMemberDialog />
       </div>
@@ -84,69 +90,89 @@ export default function TeamPage() {
 
         {/* List Body */}
         <div className="divide-y divide-border">
-          {filteredTeam.map((member, idx) => (
-            <div 
-              key={member.id} 
-              className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-muted/30 transition-colors animate-in fade-in"
-              style={{ animationFillMode: 'both', animationDelay: `${idx * 50}ms` }}
-            >
-              {/* Member Info */}
-              <div className="col-span-1 md:col-span-5 flex items-center gap-4">
-                <div className="relative shrink-0">
-                  <img 
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${member.avatar}&backgroundColor=transparent`} 
-                    alt={member.name}
-                    className="h-10 w-10 rounded-full bg-muted border border-border"
-                  />
-                  <span className={cn(
-                    "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card",
-                    member.status === 'active' ? "bg-emerald-500" :
-                    member.status === 'invited' ? "bg-amber-500" : "bg-slate-400"
-                  )} />
+          {isLoading ? (
+            // Skeleton Rows
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-5 items-center animate-pulse bg-card">
+                <div className="col-span-1 md:col-span-5 flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-full bg-muted shrink-0" />
+                  <div className="space-y-2 w-1/2">
+                    <div className="h-3.5 bg-muted rounded w-3/4" />
+                    <div className="h-3 bg-muted rounded w-1/2" />
+                  </div>
                 </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="font-semibold text-sm text-foreground truncate">{member.name}</span>
-                  <span className="text-xs text-muted-foreground truncate">{member.email}</span>
+                <div className="col-span-1 md:col-span-3 hidden md:block">
+                  <div className="h-6 w-20 bg-muted rounded-md" />
+                </div>
+                <div className="col-span-1 md:col-span-2 hidden md:block">
+                  <div className="h-4 w-12 bg-muted rounded" />
                 </div>
               </div>
-
-              {/* Role */}
-              <div className="col-span-1 md:col-span-3 flex items-center mt-3 md:mt-0">
-                <div className="md:hidden text-xs font-medium text-muted-foreground w-20">Role</div>
-                <RoleBadge role={member.role} />
+            ))
+          ) : filteredTeam.length === 0 ? (
+            <div className="relative p-16 text-center flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-300">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+              <div className="relative z-10 h-20 w-20 bg-gradient-to-br from-secondary to-muted rounded-2xl flex items-center justify-center mb-6 shadow-inner border border-white/5">
+                <UsersIcon className="h-10 w-10 text-muted-foreground" />
               </div>
-
-              {/* Tasks */}
-              <div className="col-span-1 md:col-span-2 flex items-center mt-3 md:mt-0">
-                <div className="md:hidden text-xs font-medium text-muted-foreground w-20">Tasks</div>
-                <div className="flex items-center gap-1.5 text-sm">
-                  <span className="font-semibold">{member.tasks}</span>
-                  <span className="text-muted-foreground text-xs">assigned</span>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-1 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-border md:border-0">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                  <Mail className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-          
-          {filteredTeam.length === 0 && (
-            <div className="p-12 text-center flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-300">
-              <div className="h-16 w-16 bg-secondary rounded-full flex items-center justify-center mb-4">
-                <Search className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold">No members found</h3>
-              <p className="text-muted-foreground mt-2 max-w-sm">
-                We couldn't find anyone matching "{searchQuery}". Try a different search term or invite a new member.
+              <h3 className="relative z-10 text-xl font-bold tracking-tight">No members found</h3>
+              <p className="relative z-10 text-muted-foreground mt-2 max-w-sm">
+                We couldn't find anyone matching "{searchQuery}". Try a different search term or invite a new member to your workspace.
               </p>
             </div>
+          ) : (
+            filteredTeam.map((member, idx) => (
+              <div 
+                key={member.id} 
+                className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-muted/30 transition-colors animate-in fade-in"
+                style={{ animationFillMode: 'both', animationDelay: `${idx * 50}ms` }}
+              >
+                {/* Member Info */}
+                <div className="col-span-1 md:col-span-5 flex items-center gap-4">
+                  <div className="relative shrink-0">
+                    <img 
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${member.avatar}&backgroundColor=transparent`} 
+                      alt={member.name}
+                      className="h-10 w-10 rounded-full bg-muted border border-border"
+                    />
+                    <span className={cn(
+                      "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card",
+                      member.status === 'active' ? "bg-emerald-500" :
+                      member.status === 'invited' ? "bg-amber-500" : "bg-slate-400"
+                    )} />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-sm text-foreground truncate">{member.name}</span>
+                    <span className="text-xs text-muted-foreground truncate">{member.email}</span>
+                  </div>
+                </div>
+
+                {/* Role */}
+                <div className="col-span-1 md:col-span-3 flex items-center mt-3 md:mt-0">
+                  <div className="md:hidden text-xs font-medium text-muted-foreground w-20">Role</div>
+                  <RoleBadge role={member.role} />
+                </div>
+
+                {/* Tasks */}
+                <div className="col-span-1 md:col-span-2 flex items-center mt-3 md:mt-0">
+                  <div className="md:hidden text-xs font-medium text-muted-foreground w-20">Tasks</div>
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <span className="font-semibold">{member.tasks}</span>
+                    <span className="text-muted-foreground text-xs">assigned</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-1 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-border md:border-0">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                    <Mail className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))
           )}
         </div>
       </div>

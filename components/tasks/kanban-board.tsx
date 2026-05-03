@@ -53,6 +53,12 @@ export function KanbanBoard() {
   const [draggedTaskId, setDraggedTaskId] = React.useState<string | null>(null)
   const [activeDropZone, setActiveDropZone] = React.useState<Task['status'] | null>(null)
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null)
+  const [isLoading, setIsLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800)
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
     setDraggedTaskId(taskId)
@@ -140,16 +146,32 @@ export function KanbanBoard() {
               </div>
 
               <div className="flex flex-col gap-3 flex-1 overflow-y-auto min-h-[150px] pb-2 custom-scrollbar">
-                {columnTasks.map(task => (
-                  <TaskCard 
-                    key={task.id} 
-                    task={task} 
-                    onDragStart={(e) => handleDragStart(e, task.id)}
-                    onDragEnd={handleDragEnd}
-                    onClick={() => setSelectedTask(task)}
-                  />
-                ))}
-                {isDropZone && (
+                {isLoading ? (
+                  Array.from({ length: col.id === 'todo' ? 3 : col.id === 'in-progress' ? 1 : 2 }).map((_, i) => (
+                    <div key={i} className="p-4 rounded-xl border border-border bg-card animate-pulse space-y-3">
+                      <div className="h-4 w-16 bg-muted rounded" />
+                      <div className="space-y-2 mt-4">
+                        <div className="h-3.5 w-3/4 bg-muted rounded" />
+                        <div className="h-3 w-full bg-muted rounded" />
+                      </div>
+                      <div className="flex justify-between items-center pt-3">
+                        <div className="h-3 w-16 bg-muted rounded" />
+                        <div className="h-6 w-6 rounded-full bg-muted" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  columnTasks.map(task => (
+                    <TaskCard 
+                      key={task.id} 
+                      task={task} 
+                      onDragStart={(e) => handleDragStart(e, task.id)}
+                      onDragEnd={handleDragEnd}
+                      onClick={() => setSelectedTask(task)}
+                    />
+                  ))
+                )}
+                {isDropZone && !isLoading && (
                   <div className="h-28 rounded-xl border-2 border-dashed border-primary/50 bg-primary/5 transition-all duration-200 animate-in fade-in" />
                 )}
               </div>
