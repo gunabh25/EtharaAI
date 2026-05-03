@@ -35,7 +35,8 @@ export function CreateProjectDialog({ children, onProjectCreated }: CreateProjec
     const dueDate = formData.get('dueDate')
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+      const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+      const apiUrl = isLocal ? 'http://localhost:5005' : 'https://etharaai-backend-production.up.railway.app'
       const res = await fetch(`${apiUrl}/api/projects`, {
         method: 'POST',
         headers: {
